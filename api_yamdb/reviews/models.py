@@ -48,6 +48,22 @@ class User(AbstractUser):
         ]
 
 
+class Category(models.Model):
+    name = models.TextField()
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Genre(models.Model):
+    name = models.TextField()
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Title(models.Model):
     name = models.TextField()
     year = models.IntegerField()
@@ -63,22 +79,6 @@ class Title(models.Model):
         through='GenreTitle',
         related_name='titles'
     )
-
-    def __str__(self):
-        return self.name
-
-
-class Category(models.Model):
-    name = models.TextField()
-    slug = models.SlugField(unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Genre(models.Model):
-    name = models.TextField()
-    slug = models.SlugField(unique=True)
 
     def __str__(self):
         return self.name
