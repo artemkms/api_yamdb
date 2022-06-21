@@ -50,11 +50,13 @@ class User(AbstractUser):
 
 class Title(models.Model):
     name = models.TextField()
-    year = models.DateTimeField(input_formats='%y')
+    year = models.IntegerField()
     category = models.ForeignKey(
         'Category',
         on_delete=models.SET_NULL,
-        related_name='titles'
+        related_name='titles',
+        blank=True,
+        null=True
     )
     genres = models.ManyToManyField(
         'Genre',
