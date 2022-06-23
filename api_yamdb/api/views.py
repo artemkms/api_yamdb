@@ -10,8 +10,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.permissions import IsRoleAdmin
-from api.serializers import SignUpSerializer, TokenSerializer, UserSerializer, \
-    UserEditSerializer
+from api.serializers import SignUpSerializer, TokenSerializer, UserSerializer
 from reviews.models import User
 
 
@@ -58,12 +57,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class MePage(APIView):
-    # FIXME: Разобраться с запретом юзеру изменять свою роль
-    def get_serializer_class(self):
-        serializer_class = UserSerializer
-        if self.request.method == 'PATCH' and self.request.user.role == 'user':
-            serializer_class = UserEditSerializer
-        return serializer_class
 
     def get(self, request):
         serializer = UserSerializer(request.user)
@@ -73,7 +66,6 @@ class MePage(APIView):
         serializer = UserSerializer(
             request.user, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+            serializer.save(role=request.user.role)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
