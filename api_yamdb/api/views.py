@@ -2,13 +2,15 @@ from random import randint as create_code
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.decorators import permission_classes, api_view
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api.serializers import SignUpSerializer, TokenSerializer
+from api.permissions import IsRoleAdmin
+from api.serializers import SignUpSerializer, TokenSerializer, UserSerializer
 from reviews.models import User
 
 
@@ -44,3 +46,10 @@ def send_confirmation_code(user, code):
     admin_email = 'viator3m@yamdb.com'
     user_email = [user.email]
     return send_mail(subject, message, admin_email, user_email)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    lookup_field = 'username'
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsRoleAdmin,)
