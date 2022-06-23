@@ -33,13 +33,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
 
-    # FIXME: Разобраться с запретом юзеру изменять свою роль. Почему пустой контекст?
-    # def validate(self, data):
-    #     user = self.context.get('request').user
-    #     if user.role == 'user' and 'role' in data.keys():
-    #         raise serializers.ValidationError('Невозможно изменить свою роль')
-    #     return data
-
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(

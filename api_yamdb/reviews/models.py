@@ -47,9 +47,6 @@ class User(AbstractUser):
             )
         ]
 
-    def is_admin(self):
-        return self.role == 'admin'
-
 
 class Category(models.Model):
     name = models.TextField()
