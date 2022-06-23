@@ -8,7 +8,8 @@ from .models import (User, Title, Category, Genre,
 
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'role', 'email', 'first_name',
-                    'last_name', 'is_staff', 'is_superuser')
+                    'last_name', 'is_staff', 'is_superuser',
+                    'confirmation_code')
 
 
 admin.site.register(User, CustomUserAdmin)
