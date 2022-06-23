@@ -1,12 +1,15 @@
 from random import randint as create_code
 
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
-from api.serializers import SignUpSerializer
+from api.serializers import SignUpSerializer, TokenSerializer
+from reviews.models import User
 
 
 @api_view(['POST'])
@@ -18,6 +21,20 @@ def signup(request):
         user = serializer.save(confirmation_code=code)
         send_confirmation_code(user, code)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny, ])
+def get_token(request):
+    serializer = TokenSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data.get('username')
+        user = get_object_or_404(User, username=username)
+        code = serializer.validated_data.get('confirmation_code')
+        if user.confirmation_code == code:
+            access = AccessToken.for_user(user)
+            return Response(f'token: {access}', status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

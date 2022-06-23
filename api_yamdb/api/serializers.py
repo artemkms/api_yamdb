@@ -14,3 +14,14 @@ class SignUpSerializer(serializers.ModelSerializer):
                 'Невозможно создать пользователя с таким именем'
             )
         return value
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+        extra_kwargs = {
+            'username': {
+                'validators': []
+            }
+        }
