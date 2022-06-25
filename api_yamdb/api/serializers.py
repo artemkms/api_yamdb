@@ -4,6 +4,10 @@ from reviews.models import User
 
 
 class SignUpSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер для работы с пользователями при регистрации.
+    Валидирует создание пользователя с именем "me".
+    """
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -17,6 +21,9 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер для работы с токенами.
+    """
     class Meta:
         model = User
         fields = ('username', 'confirmation_code')
@@ -28,6 +35,10 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер для работы с пользователями.
+    Валидирует создание пользователя с именем "me".
+    """
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',

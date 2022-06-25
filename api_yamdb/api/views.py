@@ -18,9 +18,14 @@ from reviews.models import User
 @api_view(['POST'])
 @permission_classes([AllowAny, ])
 def signup(request):
+    """
+    Добавляет нового пользователя в БД.
+    Отправляет шестизначный код подтверждения на почту.
+    """
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
         code = create_code(100000, 999999)
+        # fixme Если пользователь уже есть, то просто выслать код
         user = serializer.save(confirmation_code=code)
         send_confirmation_code(user, code)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -30,6 +35,10 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([AllowAny, ])
 def get_token(request):
+    """
+    Возвращает пользователю токен для авторизации.
+    В качестве параметра принимает объект request.
+    """
     serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.validated_data.get('username')
@@ -51,6 +60,10 @@ def send_confirmation_code(user, code):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет работает с эндпойнтом users/.
+    Предоставляет администратору доступ ко всем видам запросов.
+    """
     lookup_field = 'username'
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -60,7 +73,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class MePage(APIView):
-
+    """
+    Реализация доступа к эндпойнту users/me/.
+    Get-запрос возвращает пользователю информацию о нем.
+    Patch-запрос позволяет редактировать эту информацию.
+    Изменить свою пользовательскую роль нельзя.
+    """
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
