@@ -22,14 +22,28 @@ def signup(request):
     Добавляет нового пользователя в БД.
     Отправляет шестизначный код подтверждения на почту.
     """
+    code = create_code(100000, 999999)
     serializer = SignUpSerializer(data=request.data)
-    if serializer.is_valid():
-        code = create_code(100000, 999999)
-        # fixme Если пользователь уже есть, то просто выслать код
-        user = serializer.save(confirmation_code=code)
+
+    try:
+        user = User.objects.get(
+            username=serializer.initial_data.get('username'))
+        user.confirmation_code=code
+        user.save()
         send_confirmation_code(user, code)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        message = {
+            "message":
+                "Пользователь уже существует. "
+                "Код подтверждения отправлен повторно."
+        }
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+    except User.DoesNotExist:
+        if serializer.is_valid():
+            user = serializer.save(confirmation_code=code)
+            send_confirmation_code(user, code)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -40,10 +54,10 @@ def get_token(request):
     В качестве параметра принимает объект request.
     """
     serializer = TokenSerializer(data=request.data)
+    username = serializer.initial_data.get('username')
+    code = serializer.initial_data.get('confirmation_code')
     if serializer.is_valid():
-        username = serializer.validated_data.get('username')
         user = get_object_or_404(User, username=username)
-        code = serializer.validated_data.get('confirmation_code')
         if user.confirmation_code == code:
             access = AccessToken.for_user(user)
             return Response(f'token: {access}', status=status.HTTP_200_OK)

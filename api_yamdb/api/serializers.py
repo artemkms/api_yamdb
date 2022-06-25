@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import User
@@ -32,6 +33,13 @@ class TokenSerializer(serializers.ModelSerializer):
                 'validators': []
             }
         }
+
+    def validate(self, data):
+        username = data['username']
+        user = get_object_or_404(User, username=username)
+        if user.confirmation_code != data['confirmation_code']:
+            raise serializers.ValidationError('Код подтверждения не верен')
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
