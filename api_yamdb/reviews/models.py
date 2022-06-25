@@ -63,6 +63,10 @@ class Title(models.Model):
         through='GenreTitle',
         related_name='titles'
     )
+    description = models.TextField(
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return self.name
