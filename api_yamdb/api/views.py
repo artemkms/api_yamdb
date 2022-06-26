@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.response import Response
 
-from reviews.models import Category, Genre, Title, User, Review, Comment
+from reviews.models import Category, Genre, Title, User, Review
 from api.serializers import (CategorySerializer, GenresSerializer,
                              TitlesSerializer, TitlesPOSTSerializer,
                              SignUpSerializer, TokenSerializer,
@@ -158,7 +158,9 @@ class TitleViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         out_objecy = TitlesSerializer(instance=Title.objects.last())
-        return Response(out_objecy.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            out_objecy.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def update(self, request, *args, **kwargs):
         super().update(request, *args, **kwargs)

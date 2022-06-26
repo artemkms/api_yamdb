@@ -37,11 +37,3 @@ urlpatterns = [
     path('v1/auth/signup/', signup),
     path('v1/auth/token/', get_token),
 ]
-
-
-
-
-
-
-
-

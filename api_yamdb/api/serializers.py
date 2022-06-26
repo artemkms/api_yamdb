@@ -126,7 +126,7 @@ class TitlesPOSTSerializer(serializers.ModelSerializer):
         return round(rating, 2)
 
 
-class ReviewsSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
     """Ревью для произведений"""
     author = serializers.SlugRelatedField(
         slug_field='username',
@@ -157,7 +157,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
         return value
 
 
-class CommentsSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     """Комментарии на отзывы"""
 
     author = serializers.SlugRelatedField(slug_field='username', read_only=True)
@@ -165,4 +165,3 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-
