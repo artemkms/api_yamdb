@@ -60,6 +60,30 @@ class User(AbstractUser):
         return self.role == 'user'
 
 
+class Title(models.Model):
+    name = models.TextField()
+    year = models.IntegerField()
+    category = models.ForeignKey(
+        'Category',
+        on_delete=models.SET_NULL,
+        related_name='titles',
+        blank=True,
+        null=True
+    )
+    genre = models.ManyToManyField(
+        'Genre',
+        through='GenreTitle',
+        related_name='titles'
+    )
+    description = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return self.name
+
+
 class Category(models.Model):
     name = models.TextField()
     slug = models.SlugField(unique=True)
@@ -71,26 +95,6 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.TextField()
     slug = models.SlugField(unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Title(models.Model):
-    name = models.TextField()
-    year = models.IntegerField()
-    category = models.ForeignKey(
-        'Category',
-        on_delete=models.SET_NULL,
-        related_name='titles',
-        blank=True,
-        null=True
-    )
-    genres = models.ManyToManyField(
-        'Genre',
-        through='GenreTitle',
-        related_name='titles'
-    )
 
     def __str__(self):
         return self.name

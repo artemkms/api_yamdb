@@ -2,17 +2,55 @@ from random import randint as create_code
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets, mixins, filters
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.response import Response
 
-from api.permissions import IsRoleAdmin
-from api.serializers import SignUpSerializer, TokenSerializer, UserSerializer
-from reviews.models import User
+from reviews.models import Category, Genre, Title, User
+from api.serializers import CategorySerializer, GenresSerializer, \
+                            TitlesSerializer, TitlesPOSTSerializer,\
+                            SignUpSerializer, TokenSerializer,\
+                            UserSerializer
+from api.permissions import ReadOnly, IsRoleAdmin
+from api.filters import TitleFilter
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет работает с эндпойнтом users/.
+    Предоставляет администратору доступ ко всем видам запросов.
+    """
+    lookup_field = 'username'
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsRoleAdmin,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)
+
+
+class MePage(APIView):
+    """
+    Реализация доступа к эндпойнту users/me/.
+    Get-запрос возвращает пользователю информацию о нем.
+    Patch-запрос позволяет редактировать эту информацию.
+    Изменить свою пользовательскую роль нельзя.
+    """
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save(role=request.user.role)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -73,34 +111,55 @@ def send_confirmation_code(user, code):
     return send_mail(subject, message, from_email, to_email)
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    Вьюсет работает с эндпойнтом users/.
-    Предоставляет администратору доступ ко всем видам запросов.
-    """
-    lookup_field = 'username'
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsRoleAdmin,)
-    filter_backends = (SearchFilter,)
-    search_fields = ('username',)
+class ListPostDel(
+    mixins.ListModelMixin, mixins.CreateModelMixin,
+    mixins.DestroyModelMixin, viewsets.GenericViewSet
+):
+    pass
 
 
-class MePage(APIView):
-    """
-    Реализация доступа к эндпойнту users/me/.
-    Get-запрос возвращает пользователю информацию о нем.
-    Patch-запрос позволяет редактировать эту информацию.
-    Изменить свою пользовательскую роль нельзя.
-    """
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class CategoryViewSet(ListPostDel):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsRoleAdmin | ReadOnly,)
+    lookup_field = 'slug'
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name',)
+    search_fields = ('name',)
 
-    def patch(self, request):
-        serializer = UserSerializer(
-            request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save(role=request.user.role)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GenreViewSet(ListPostDel):
+    queryset = Genre.objects.all()
+    serializer_class = GenresSerializer
+    permission_classes = (IsRoleAdmin | ReadOnly,)
+    lookup_field = 'slug'
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name',)
+    search_fields = ('name',)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitlesSerializer
+    permission_classes = (IsRoleAdmin | ReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH',):
+            return TitlesPOSTSerializer
+        return TitlesSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        out_objecy = TitlesSerializer(instance=Title.objects.last())
+        return Response(out_objecy.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        out_objecy = TitlesSerializer(instance=self.get_object())
+        return Response(out_objecy.data)
+
