@@ -28,12 +28,12 @@ class GenresSerializer(serializers.ModelSerializer):
 class TitlesSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     category = CategorySerializer()
-    genres = GenresSerializer(many=True)
+    genre = GenresSerializer(many=True)
 
     class Meta:
         fields = (
             'id', 'name', 'year', 'category',
-            'genres', 'description', 'rating'
+            'genre', 'description', 'rating'
         )
         model = Title
 
@@ -54,7 +54,7 @@ class TitlesPOSTSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all()
                                             )
-    genres = serializers.SlugRelatedField(slug_field='slug',
+    genre = serializers.SlugRelatedField(slug_field='slug',
                                           queryset=Genre.objects.all(),
                                           many = True,
                                           required=False
@@ -63,7 +63,7 @@ class TitlesPOSTSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id', 'name', 'year', 'category',
-            'genres', 'description', 'rating'
+            'genre', 'description', 'rating'
         )
         model = Title
 
