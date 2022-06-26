@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, Title, User, Comment, Review, User
+from reviews.models import Category, Genre, Title, User, Comment, Review
 
 
 class SignUpSerializer(serializers.ModelSerializer):
