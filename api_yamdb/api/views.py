@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from reviews.models import Category, Genre, Title
 from api.serializers import CategorySerializer, GenresSerializer
 from api.serializers import TitlesSerializer, TitlesPOSTSerializer
-from api.permissions import SuperOrAdminOrReadOnly
+from api.permissions import ReadOnly, IsRoleAdmin
 
 
 class ListPostDel(
@@ -20,21 +20,21 @@ class ListPostDel(
 class CategoryViewSet(ListPostDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = SuperOrAdminOrReadOnly
+    permission_classes = (IsRoleAdmin | ReadOnly,)
     lookup_field = 'slug'
 
 
 class GenreViewSet(ListPostDel):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializer
-    permission_classes = SuperOrAdminOrReadOnly
+    permission_classes = (IsRoleAdmin | ReadOnly,)
     lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializer
-    permission_classes = SuperOrAdminOrReadOnly
+    permission_classes = (IsRoleAdmin | ReadOnly,)
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH',):

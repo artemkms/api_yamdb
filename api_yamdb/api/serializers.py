@@ -41,7 +41,7 @@ class TitlesSerializer(serializers.ModelSerializer):
         rating = obj.reviews.aggregate(
             Avg('score')).get('score__avg')
         if not rating:
-            return 0
+            return rating
         return round(rating, 2)
 
     # def validate(self, data):
@@ -75,5 +75,5 @@ class TitlesPOSTSerializer(serializers.ModelSerializer):
         rating = obj.reviews.aggregate(
             Avg('score')).get('score__avg')
         if not rating:
-            return 0
+            return rating
         return round(rating, 2)
