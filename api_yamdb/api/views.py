@@ -19,6 +19,7 @@ class ListPostDel(
 
 class CategoryViewSet(ListPostDel):
     queryset = Category.objects.all()
+    serializer_class = CategorySerializer
     #permission_classes = SuperOrAdminOrReadOnly
     lookup_field = 'slug'
 
