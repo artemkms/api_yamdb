@@ -20,21 +20,21 @@ class ListPostDel(
 class CategoryViewSet(ListPostDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    #permission_classes = SuperOrAdminOrReadOnly
+    permission_classes = SuperOrAdminOrReadOnly
     lookup_field = 'slug'
 
 
 class GenreViewSet(ListPostDel):
     queryset = Genre.objects.all()
     serializer_class = GenresSerializer
-    #permission_classes = SuperOrAdminOrReadOnly
+    permission_classes = SuperOrAdminOrReadOnly
     lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializer
-    #permission_classes = SuperOrAdminOrReadOnly
+    permission_classes = SuperOrAdminOrReadOnly
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH',):
