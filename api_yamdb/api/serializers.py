@@ -10,6 +10,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     Сериалайзер для работы с пользователями при регистрации.
     Валидирует создание пользователя с именем "me".
     """
+
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -26,6 +27,7 @@ class TokenSerializer(serializers.ModelSerializer):
     """
     Сериалайзер для работы с токенами.
     """
+
     class Meta:
         model = User
         fields = ('username', 'confirmation_code')
@@ -48,6 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
     Сериалайзер для работы с пользователями.
     Валидирует создание пользователя с именем "me".
     """
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
@@ -101,14 +104,16 @@ class TitlesSerializer(serializers.ModelSerializer):
 
 class TitlesPOSTSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
-    category = serializers.SlugRelatedField(slug_field='slug',
-                                            queryset=Category.objects.all()
-                                            )
-    genre = serializers.SlugRelatedField(slug_field='slug',
-                                          queryset=Genre.objects.all(),
-                                          many = True,
-                                          required=False
-                                          )
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True,
+        required=False
+    )
 
     class Meta:
         fields = (
@@ -116,7 +121,6 @@ class TitlesPOSTSerializer(serializers.ModelSerializer):
             'genre', 'description', 'rating'
         )
         model = Title
-
 
     def get_rating(self, obj):
         rating = obj.reviews.aggregate(
@@ -160,7 +164,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Комментарии на отзывы"""
 
-    author = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.SlugRelatedField(slug_field='username',
+                                          read_only=True)
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')

@@ -68,7 +68,7 @@ def signup(request):
     try:
         user = User.objects.get(
             username=serializer.initial_data.get('username'))
-        user.confirmation_code=code
+        user.confirmation_code = code
         user.save()
         send_confirmation_code(user, code)
         message = {
