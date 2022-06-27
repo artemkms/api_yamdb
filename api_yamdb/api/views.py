@@ -94,13 +94,11 @@ def get_token(request):
     В качестве параметра принимает объект request.
     """
     serializer = TokenSerializer(data=request.data)
-    username = serializer.initial_data.get('username')
-    code = serializer.initial_data.get('confirmation_code')
     if serializer.is_valid():
+        username = serializer.validated_data.get('username')
         user = get_object_or_404(User, username=username)
-        if user.confirmation_code == code:
-            access = AccessToken.for_user(user)
-            return Response(f'token: {access}', status=status.HTTP_200_OK)
+        access = AccessToken.for_user(user)
+        return Response(f'token: {access}', status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
