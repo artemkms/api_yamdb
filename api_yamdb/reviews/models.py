@@ -4,16 +4,20 @@ from django.db import models
 
 
 class User(AbstractUser):
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+
+    ROLES = (
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Админ'),
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.is_superuser:
-            self.role = 'admin'
-
-    ROLES = (
-        ('user', 'Пользователь'),
-        ('moderator', 'Модератор'),
-        ('admin', 'Админ'),
-    )
+            self.role = self.ADMIN
 
     email = models.EmailField(
         verbose_name='Электронная почта',
@@ -49,15 +53,15 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == 'admin' or self.is_superuser
+        return self.role == self.ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == self.MODERATOR
 
     @property
     def is_user(self):
-        return self.role == 'user'
+        return self.role == self.USER
 
 
 class Title(models.Model):
