@@ -1,13 +1,13 @@
 from random import randint as create_code
 
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins, filters
 from rest_framework.decorators import permission_classes, api_view, action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.response import Response
 
@@ -71,25 +71,24 @@ def signup(request):
     code = create_code(100000, 999999)
     serializer = SignUpSerializer(data=request.data)
 
+    code = create_code(100000, 999999)
+    serializer = SignUpSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
+    username = serializer.validated_data['username']
     try:
-        user = User.objects.get(
-            username=serializer.initial_data.get('username'))
-        user.confirmation_code = code
-        user.save()
-        send_confirmation_code(user, code)
-        message = {
-            "message":
-                "Пользователь уже существует. "
-                "Код подтверждения отправлен повторно."
-        }
-        return Response(message, status=status.HTTP_400_BAD_REQUEST)
-
-    except User.DoesNotExist:
-        if serializer.is_valid():
-            user = serializer.save(confirmation_code=code)
-            send_confirmation_code(user, code)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        user, created = User.objects.get_or_create(
+                    username=username,
+                    email=email
+        )
+    except IntegrityError:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    user.confirmation_code = code
+    user.save()
+    send_confirmation_code(user, code)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
