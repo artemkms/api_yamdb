@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 
 from reviews.models import Category, Genre, Title, User, Comment, Review
@@ -137,6 +138,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
         read_only=True
     )
+    score = serializers.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(10)]
+    )
 
     class Meta:
         fields = '__all__'
@@ -155,11 +159,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                 )
         return data
 
-    def validate_score(self, value):
-        if 0 >= value >= 10:
-            raise serializers.ValidationError('Проверьте оценку')
-        return value
-
 
 class CommentSerializer(serializers.ModelSerializer):
     """Комментарии на отзывы"""
@@ -170,3 +169,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
+
