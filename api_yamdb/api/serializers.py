@@ -46,7 +46,7 @@ class TokenSerializer(serializers.ModelSerializer):
         return data
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(SignUpSerializer):
     """
     Сериалайзер для работы с пользователями.
     Валидирует создание пользователя с именем "me".
@@ -54,15 +54,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name',
-                  'last_name', 'bio', 'role')
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Невозможно создать пользователя с таким именем'
-            )
-        return value
+        fields = SignUpSerializer.Meta.fields + (
+            'first_name', 'last_name', 'bio', 'role'
+        )
 
 
 class CategorySerializer(serializers.ModelSerializer):
