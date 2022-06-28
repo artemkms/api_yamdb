@@ -4,9 +4,9 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins, filters
-from rest_framework.decorators import permission_classes, api_view
+from rest_framework.decorators import permission_classes, api_view, action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.response import Response
@@ -34,25 +34,31 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
 
-
-class MePage(APIView):
-    """
-    Реализация доступа к эндпойнту users/me/.
-    Get-запрос возвращает пользователю информацию о нем.
-    Patch-запрос позволяет редактировать эту информацию.
-    Изменить свою пользовательскую роль нельзя.
-    """
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        serializer = UserSerializer(
-            request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save(role=request.user.role)
+    @action(
+        methods=['GET', 'PATCH'],
+        detail=False,
+        url_path='me',
+        permission_classes=[IsAuthenticated]
+    )
+    def me_page(self, request):
+        """
+        Реализация доступа к эндпойнту users/me/.
+        Get-запрос возвращает пользователю информацию о нем.
+        Patch-запрос позволяет редактировать эту информацию.
+        Изменить свою пользовательскую роль нельзя.
+        """
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.method == 'PATCH':
+            serializer = UserSerializer(
+                request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save(role=request.user.role)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
