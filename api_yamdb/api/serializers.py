@@ -1,6 +1,7 @@
 import datetime as dt
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from reviews.models import (
     Category,
@@ -18,6 +19,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
         read_only=True
     )
+    score = serializers.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     class Meta:
         fields = '__all__'
@@ -35,12 +37,6 @@ class ReviewsSerializer(serializers.ModelSerializer):
                     'Нельзя оставить отзыв на одно произведение дважды'
                 )
         return data
-
-    def validate_score(self, value):
-        if 0 >= value >= 10:
-            raise serializers.ValidationError('Проверьте оценку')
-        return value
-
 
 class CommentsSerializer(serializers.ModelSerializer):
     """Комментарии на отзывы"""
