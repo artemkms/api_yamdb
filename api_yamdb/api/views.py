@@ -1,7 +1,6 @@
 from random import randint as create_code
 
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins, filters
@@ -68,26 +67,28 @@ def signup(request):
     Добавляет нового пользователя в БД.
     Отправляет шестизначный код подтверждения на почту.
     """
-    code = create_code(100000, 999999)
     serializer = SignUpSerializer(data=request.data)
+    email = request.data.get('email')
+    user = User.objects.filter(email=email)
 
-    serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data['email']
-    username = serializer.validated_data['username']
-
-    try:
-        user, created = User.objects.get_or_create(
-            username=username,
-            email=email
+    if user.exists():
+        user = user.get(email=email)
+        send_confirmation_code(user)
+        return Response(
+            {'message': 'Пользователь с такой электронной почтой уже '
+                        'существует. Код подтверждения отправлен повторно. '
+             },
+            status=status.HTTP_400_BAD_REQUEST
         )
-    except IntegrityError:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    user.confirmation_code = code
-    user.save()
-    send_confirmation_code(user, code)
-
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get('email')
+        username = serializer.validated_data.get('username')
+        user, created = User.objects.get_or_create(username=username,
+                                                   email=email)
+        send_confirmation_code(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -106,7 +107,11 @@ def get_token(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def send_confirmation_code(user, code):
+def send_confirmation_code(user):
+    code = create_code(100000, 999999)
+    user.confirmation_code = code
+    user.save()
+
     subject = 'YaMDb. Код авторизации.'
     message = f'Здравствуй, {user}! \n' \
               f'Это твой код для авторизации {code}'
