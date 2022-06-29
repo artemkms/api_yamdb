@@ -107,7 +107,11 @@ def get_token(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def send_confirmation_code(user, code):
+def send_confirmation_code(user):
+    code = create_code(100000, 999999)
+    user.confirmation_code = code
+    user.save()
+
     subject = 'YaMDb. Код авторизации.'
     message = f'Здравствуй, {user}! \n' \
               f'Это твой код для авторизации {code}'
